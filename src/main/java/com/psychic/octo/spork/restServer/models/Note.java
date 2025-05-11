@@ -1,6 +1,5 @@
 package com.psychic.octo.spork.restServer.models;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
 
