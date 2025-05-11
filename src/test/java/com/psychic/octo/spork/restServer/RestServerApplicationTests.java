@@ -1,4 +1,4 @@
-package com.psychic_octo_spork.rest_server;
+package com.psychic.octo.spork.restServer;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
