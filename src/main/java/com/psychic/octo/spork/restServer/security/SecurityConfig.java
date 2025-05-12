@@ -33,7 +33,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((requests) ->
                         requests
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
+                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
                                 .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 //.formLogin(withDefaults())

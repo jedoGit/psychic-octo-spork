@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin")
-//@PreAuthorize("hasRole('ROLE_ADMIN')") // Enabled in the the defaultSecurityFilterChain() using requestMatchers
+@RequestMapping("/api/v1/admin")
+//@PreAuthorize("hasRole('ROLE_ADMIN')") // Enabled in the defaultSecurityFilterChain() using requestMatchers
 public class AdminController {
 
     @Autowired
