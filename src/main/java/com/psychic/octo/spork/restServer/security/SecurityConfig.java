@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,6 +22,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true) // Remove this if we're not using the @PreAuthorize, @PostAuthorize... etc annotations.
 public class SecurityConfig {
 
     @Autowired
@@ -30,35 +32,14 @@ public class SecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) ->
-                        requests.anyRequest().authenticated())
+                        requests
+                                .requestMatchers("/api/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
+                                .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 //.formLogin(withDefaults())
                 .httpBasic(withDefaults());
         return http.build();
     }
-
-//    @Bean
-//    public UserDetailsService userDetailsService(DataSource dataSource) {
-//        JdbcUserDetailsManager manager =
-//                new JdbcUserDetailsManager(dataSource);
-//        if (!manager.userExists(environment.getProperty("INITIAL_USER_1"))) {
-//            manager.createUser(
-//                    User.withUsername(environment.getProperty("INITIAL_USER_1"))
-//                            .password(Objects.requireNonNull(environment.getProperty("INITIAL_USER_1_PASSWORD")))
-//                            .roles(environment.getProperty("INITIAL_USER_1_ROLE"))
-//                            .build()
-//            );
-//        }
-//        if (!manager.userExists(environment.getProperty("INITIAL_USER_2"))) {
-//            manager.createUser(
-//                    User.withUsername(environment.getProperty("INITIAL_USER_2"))
-//                            .password(Objects.requireNonNull(environment.getProperty("INITIAL_USER_2_PASSWORD")))
-//                            .roles(environment.getProperty("INITIAL_USER_2_ROLE"))
-//                            .build()
-//            );
-//        }
-//        return manager;
-//    }
 
     @Bean
     public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository) {
