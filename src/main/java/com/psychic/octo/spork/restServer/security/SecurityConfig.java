@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import java.time.LocalDate;
 
@@ -33,12 +34,14 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests((requests) ->
-                        requests
-                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
-                                .anyRequest().authenticated())
-                .csrf(AbstractHttpConfigurer::disable)
-                //.formLogin(withDefaults())
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/api/v1/auth/public/**"))
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
+                        .requestMatchers("/api/v1/csrf-token").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(withDefaults())
                 .httpBasic(withDefaults());
         return http.build();
     }
