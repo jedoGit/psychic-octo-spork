@@ -1,6 +1,7 @@
-package com.psychic.octo.spork.restServer.models;
+package com.psychic.octo.spork.restServer.dto;
 
 
+import com.psychic.octo.spork.restServer.models.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

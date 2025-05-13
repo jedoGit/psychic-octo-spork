@@ -1,4 +1,4 @@
-package com.psychic.octo.spork.restServer.security.response;
+package com.psychic.octo.spork.restServer.dto.response;
 
 import java.util.List;
 

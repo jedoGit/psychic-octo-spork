@@ -1,12 +1,11 @@
 package com.psychic.octo.spork.restServer.controller;
 
 import com.psychic.octo.spork.restServer.models.User;
-import com.psychic.octo.spork.restServer.models.UserDTO;
+import com.psychic.octo.spork.restServer.dto.UserDTO;
 import com.psychic.octo.spork.restServer.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

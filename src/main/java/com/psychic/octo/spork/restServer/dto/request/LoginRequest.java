@@ -1,4 +1,4 @@
-package com.psychic.octo.spork.restServer.security.request;
+package com.psychic.octo.spork.restServer.dto.request;
 
 public class LoginRequest {
     private String username;
