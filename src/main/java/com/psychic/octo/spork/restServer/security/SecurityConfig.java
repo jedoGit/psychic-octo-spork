@@ -5,11 +5,15 @@ import com.psychic.octo.spork.restServer.models.Role;
 import com.psychic.octo.spork.restServer.models.User;
 import com.psychic.octo.spork.restServer.repositories.RoleRepository;
 import com.psychic.octo.spork.restServer.repositories.UserRepository;
+import com.psychic.octo.spork.restServer.security.jwt.AuthEntryPointJwt;
+import com.psychic.octo.spork.restServer.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,6 +21,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import java.time.LocalDate;
@@ -27,6 +32,13 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 //@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true) // Remove this if we're not using the @PreAuthorize, @PostAuthorize... etc annotations.
 public class SecurityConfig {
+    @Autowired
+    private AuthEntryPointJwt unauthorizedHandler;
+
+    @Bean
+    public AuthTokenFilter authenticationJwtTokenFilter() {
+        return new AuthTokenFilter();
+    }
 
     @Autowired
     private Environment environment;
@@ -39,18 +51,26 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/v1/auth/public/**"))
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
+                        .requestMatchers("/api/v1/auth/public/**").permitAll()
                         .requestMatchers("/api/v1/csrf-token").permitAll()
                         .anyRequest().authenticated())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler))
+                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(withDefaults())
                 .httpBasic(withDefaults());
         return http.build();
     }
 
     @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 
     @Bean
     public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
