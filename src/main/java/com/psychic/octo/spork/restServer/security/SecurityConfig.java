@@ -8,6 +8,7 @@ import com.psychic.octo.spork.restServer.repositories.UserRepository;
 import com.psychic.octo.spork.restServer.security.jwt.AuthEntryPointJwt;
 import com.psychic.octo.spork.restServer.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,8 +24,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -32,6 +37,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 //@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true) // Remove this if we're not using the @PreAuthorize, @PostAuthorize... etc annotations.
 public class SecurityConfig {
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
@@ -47,13 +56,15 @@ public class SecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         // The order of calls matter here!
         http
+                .cors( cors -> cors
+                        .configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/api/v1/auth/public/**"))
+                        .ignoringRequestMatchers("/api/auth/public/**"))
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
-                        .requestMatchers("/api/v1/auth/public/**").permitAll()
-                        .requestMatchers("/api/v1/csrf-token").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
+                        .requestMatchers("/api/auth/public/**").permitAll()
+                        .requestMatchers("/api/csrf-token").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler))
@@ -66,6 +77,25 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        // Allow specific origins
+        corsConfig.setAllowedOrigins(List.of(frontendUrl));
+        // Allow specific HTTP methods
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Allow specific headers
+        corsConfig.setAllowedHeaders(List.of("*"));
+        // Allow credentials (cookies, authorization headers)
+        corsConfig.setAllowCredentials(true);
+        corsConfig.setMaxAge(3600L);
+        // Define allowed paths (for all paths use "/**")
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig); // Apply to all endpoints
+
+        return source;
     }
 
     @Bean
