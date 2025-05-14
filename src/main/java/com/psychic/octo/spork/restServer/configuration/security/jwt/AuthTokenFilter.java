@@ -1,6 +1,6 @@
-package com.psychic.octo.spork.restServer.security.jwt;
+package com.psychic.octo.spork.restServer.configuration.security.jwt;
 
-import com.psychic.octo.spork.restServer.security.services.UserDetailsServiceImpl;
+import com.psychic.octo.spork.restServer.configuration.security.userdetails.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

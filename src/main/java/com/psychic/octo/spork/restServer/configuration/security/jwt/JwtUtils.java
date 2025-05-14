@@ -1,4 +1,4 @@
-package com.psychic.octo.spork.restServer.security.jwt;
+package com.psychic.octo.spork.restServer.configuration.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

@@ -1,12 +1,12 @@
-package com.psychic.octo.spork.restServer.security;
+package com.psychic.octo.spork.restServer.configuration;
 
 import com.psychic.octo.spork.restServer.models.AppRole;
 import com.psychic.octo.spork.restServer.models.Role;
 import com.psychic.octo.spork.restServer.models.User;
 import com.psychic.octo.spork.restServer.repositories.RoleRepository;
 import com.psychic.octo.spork.restServer.repositories.UserRepository;
-import com.psychic.octo.spork.restServer.security.jwt.AuthEntryPointJwt;
-import com.psychic.octo.spork.restServer.security.jwt.AuthTokenFilter;
+import com.psychic.octo.spork.restServer.configuration.security.jwt.AuthEntryPointJwt;
+import com.psychic.octo.spork.restServer.configuration.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -15,21 +15,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -56,8 +50,9 @@ public class SecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         // The order of calls matter here!
         http
-                .cors( cors -> cors
-                        .configurationSource(corsConfigurationSource()))
+//                .cors( cors -> cors
+//                        .configurationSource(corsConfigurationSource()))
+                .cors(withDefaults())
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .ignoringRequestMatchers("/api/auth/public/**"))
@@ -79,24 +74,24 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        // Allow specific origins
-        corsConfig.setAllowedOrigins(List.of(frontendUrl));
-        // Allow specific HTTP methods
-        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Allow specific headers
-        corsConfig.setAllowedHeaders(List.of("*"));
-        // Allow credentials (cookies, authorization headers)
-        corsConfig.setAllowCredentials(true);
-        corsConfig.setMaxAge(3600L);
-        // Define allowed paths (for all paths use "/**")
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig); // Apply to all endpoints
-
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration corsConfig = new CorsConfiguration();
+//        // Allow specific origins
+//        corsConfig.setAllowedOrigins(List.of(frontendUrl));
+//        // Allow specific HTTP methods
+//        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        // Allow specific headers
+//        corsConfig.setAllowedHeaders(List.of("*"));
+//        // Allow credentials (cookies, authorization headers)
+//        corsConfig.setAllowCredentials(true);
+//        corsConfig.setMaxAge(3600L);
+//        // Define allowed paths (for all paths use "/**")
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", corsConfig); // Apply to all endpoints
+//
+//        return source;
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

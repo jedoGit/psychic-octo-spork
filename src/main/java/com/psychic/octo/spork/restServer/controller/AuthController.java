@@ -24,7 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import com.psychic.octo.spork.restServer.security.jwt.JwtUtils;
+import com.psychic.octo.spork.restServer.configuration.security.jwt.JwtUtils;
 
 import java.time.LocalDate;
 import java.util.HashMap;

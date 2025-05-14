@@ -1,4 +1,4 @@
-package com.psychic.octo.spork.restServer.security.services;
+package com.psychic.octo.spork.restServer.configuration.security.userdetails;
 
 
 import com.psychic.octo.spork.restServer.models.User;
