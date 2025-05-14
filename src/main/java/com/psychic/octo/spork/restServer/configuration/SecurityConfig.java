@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/auth/public/**"))
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AdminController.
+                        .requestMatchers("/api/audit/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AuditController.
                         .requestMatchers("/api/auth/public/**").permitAll()
                         .requestMatchers("/api/csrf-token").permitAll()
                         .anyRequest().authenticated())
