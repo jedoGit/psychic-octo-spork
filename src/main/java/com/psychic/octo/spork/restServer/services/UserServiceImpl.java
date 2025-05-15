@@ -1,20 +1,29 @@
 package com.psychic.octo.spork.restServer.services;
 
 import com.psychic.octo.spork.restServer.models.AppRole;
+import com.psychic.octo.spork.restServer.models.PasswordResetToken;
 import com.psychic.octo.spork.restServer.models.Role;
 import com.psychic.octo.spork.restServer.models.User;
 import com.psychic.octo.spork.restServer.dto.UserDTO;
+import com.psychic.octo.spork.restServer.repositories.PasswordResetRepository;
 import com.psychic.octo.spork.restServer.repositories.RoleRepository;
 import com.psychic.octo.spork.restServer.repositories.UserRepository;
+import com.psychic.octo.spork.restServer.utils.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
+    @Value("${frontend.url}")
+    String frontendUrl;
 
     @Autowired
     UserRepository userRepository;
@@ -24,6 +33,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    PasswordResetRepository passwordResetRepository;
+
+    @Autowired
+    EmailService emailService;
 
     @Override
     public void updateUserRole(Long userId, String roleName) {
@@ -97,6 +112,45 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to update password");
         }
+    }
+
+    @Override
+    public void generatePasswordResetToken(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow( () -> new RuntimeException("User not found"));
+
+        String token = UUID.randomUUID().toString();
+        Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
+
+        PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
+
+        passwordResetRepository.save(resetToken);
+
+        String resetUrl = frontendUrl + "/reset-password?token=" + token;
+
+        // Send email to user
+        emailService.sendPasswordResetEmail(user.getEmail(), resetUrl );
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword){
+        PasswordResetToken resetToken = passwordResetRepository.findByToken(token)
+                .orElseThrow( () -> new RuntimeException("Invalid Password Reset Token"));
+
+        if (resetToken.isUsed()) {
+            throw new RuntimeException("Password Reset Token has already been used");
+        }
+
+        if (resetToken.getExpiryDate().isBefore(Instant.now())) {
+            throw new RuntimeException("Password Reset Token has expired");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetRepository.save(resetToken);
     }
 
     private UserDTO convertToDto(User user) {
