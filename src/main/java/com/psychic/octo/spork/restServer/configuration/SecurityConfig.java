@@ -1,5 +1,6 @@
 package com.psychic.octo.spork.restServer.configuration;
 
+import com.psychic.octo.spork.restServer.configuration.security.OAuth2LoginSuccessHandler;
 import com.psychic.octo.spork.restServer.models.AppRole;
 import com.psychic.octo.spork.restServer.models.Role;
 import com.psychic.octo.spork.restServer.models.User;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -45,6 +47,10 @@ public class SecurityConfig {
     }
 
     @Autowired
+    @Lazy
+    OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    @Autowired
     private Environment environment;
 
     @Bean
@@ -62,7 +68,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/audit/**").hasRole("ADMIN")       // Enabled PreAuthorize("hasRole('ROLE_ADMIN')") in the AuditController.
                         .requestMatchers("/api/auth/public/**").permitAll()
                         .requestMatchers("/api/csrf-token").permitAll()
+                        .requestMatchers("/oauth2/**").permitAll()
                         .anyRequest().authenticated())
+                .oauth2Login( oauth2 -> {
+                            oauth2.successHandler(oAuth2LoginSuccessHandler);
+                        })
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)  // Add the JWT Authentication before the UsernamePassword Auth

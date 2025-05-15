@@ -71,6 +71,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
     public void updateAccountLockStatus(Long userId, boolean lock) {
         User user = userRepository.findById(userId).orElseThrow(()
                 -> new RuntimeException("User not found"));
@@ -151,6 +156,14 @@ public class UserServiceImpl implements UserService {
 
         resetToken.setUsed(true);
         passwordResetRepository.save(resetToken);
+    }
+
+    @Override
+    public User registerUser(User user) {
+        if( user.getPassword() != null ){
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        return userRepository.save(user);
     }
 
     private UserDTO convertToDto(User user) {

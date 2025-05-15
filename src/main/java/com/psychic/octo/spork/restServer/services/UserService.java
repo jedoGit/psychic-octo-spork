@@ -4,6 +4,7 @@ import com.psychic.octo.spork.restServer.models.User;
 import com.psychic.octo.spork.restServer.dto.UserDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
     void updateUserRole(Long userId, String roleName);
@@ -13,6 +14,10 @@ public interface UserService {
     UserDTO getUserById(Long id);
 
     User findByUsername(String username);
+
+    Optional<User> findByEmail(String email);
+
+    
 
     void updateAccountLockStatus(Long userId, boolean lock);
 
@@ -27,4 +32,6 @@ public interface UserService {
     void generatePasswordResetToken(String email);
 
     void resetPassword(String token, String newPassword);
+
+    User registerUser(User user);
 }
