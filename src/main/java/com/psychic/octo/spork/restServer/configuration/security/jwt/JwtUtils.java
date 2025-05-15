@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 // Get the dependencies from https://github.com/jwtk/jjwt?tab=readme-ov-file#maven
 
@@ -37,8 +38,13 @@ public class JwtUtils {
 
     public String generateTokenFromUsername(UserDetails userDetails) {
         String username = userDetails.getUsername();
+        String roles = userDetails.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .collect(Collectors.joining(","));
+
         return Jwts.builder()
                 .subject(username)
+                .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key())
