@@ -48,18 +48,25 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
 
+        // First, we'll need the authentication object to get the authentication token
         OAuth2AuthenticationToken oAuth2AuthenticationToken = (OAuth2AuthenticationToken) authentication;
 
+        // Check if the client registration id
         if ("github".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId()) ||
                 "google".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId())) {
 
+            // Get the authenticated user. This will come from the authentication principal
             DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();
 
+            // Get all of the attributes of the authenticated user.
             Map<String, Object> attributes = principal.getAttributes();
 
+            // We only want to grab the email and name attributes from the authenticated user
             String email = attributes.getOrDefault("email", "").toString();
             String name = attributes.getOrDefault("name", "").toString();
 
+            // Each OAuth2 provider will pass data differently, so we'll handle getting the username information based
+            // on OAuth2 provider.
             if ("github".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId())) {
                 username = attributes.getOrDefault("login", "").toString();
                 idAttributeKey = "id";
@@ -71,34 +78,50 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                 idAttributeKey = "id";
             }
 
+            // Let's print out the email, name and username
             System.out.println("HELLO OAUTH: " + email + " : " + name + " : " + username);
 
+            // We'll use the email to find if it there is a user with this email that already exists in our users repository
             userService.findByEmail(email)
                     .ifPresentOrElse(user -> {
+                        // We'll get all the roles of this particular user and create an Oauth2User object with id attrib key
                         DefaultOAuth2User oauthUser = new DefaultOAuth2User(
                                 List.of(new SimpleGrantedAuthority(user.getRole().getRoleName().name())),
                                 attributes,
                                 idAttributeKey
                         );
+                        // We'll create an authentication object from the Oauth2 auth token
                         Authentication securityAuth = new OAuth2AuthenticationToken(
                                 oauthUser,
                                 List.of(new SimpleGrantedAuthority(user.getRole().getRoleName().name())),
                                 oAuth2AuthenticationToken.getAuthorizedClientRegistrationId()
                         );
+                        // Don't forget to set the authentication context
                         SecurityContextHolder.getContext().setAuthentication(securityAuth);
                     }, () -> {
+                        // Here' we can't find a user that matches the email, so we'll create one
                         User newUser = new User();
+                        // Create a user role object.. don't assign an admin!
                         Optional<Role> userRole = roleRepository.findByRoleName(AppRole.ROLE_USER); // Fetch existing role
+
+                        // Set the role to the  user object
                         if (userRole.isPresent()) {
                             newUser.setRole(userRole.get()); // Set existing role
                         } else {
                             // Handle the case where the role is not found
                             throw new RuntimeException("Default role not found");
                         }
+
+                        // Set the rest of the user attibutes
                         newUser.setEmail(email);
                         newUser.setUserName(username);
                         newUser.setSignUpMethod(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
+
+                        // Save the new user object to the user repository
+                        // This means we're auto provisioning the new Oauth2 user if it's not in our user repository
                         userService.registerUser(newUser);
+
+                        // Setup the authentication object so we can set the security context
                         DefaultOAuth2User oauthUser = new DefaultOAuth2User(
                                 List.of(new SimpleGrantedAuthority(newUser.getRole().getRoleName().name())),
                                 attributes,
@@ -109,9 +132,11 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                                 List.of(new SimpleGrantedAuthority(newUser.getRole().getRoleName().name())),
                                 oAuth2AuthenticationToken.getAuthorizedClientRegistrationId()
                         );
+                        // Don't forget to set the security context
                         SecurityContextHolder.getContext().setAuthentication(securityAuth);
                     });
         }
+
         this.setAlwaysUseDefaultTargetUrl(true);
 
         // JWT TOKEN LOGIC
