@@ -1,5 +1,6 @@
 package com.psychic.octo.spork.restServer.controller;
 
+import com.psychic.octo.spork.restServer.configuration.security.userdetails.UserDetailsImpl;
 import com.psychic.octo.spork.restServer.dto.request.LoginRequest;
 import com.psychic.octo.spork.restServer.dto.request.SignupRequest;
 import com.psychic.octo.spork.restServer.dto.response.LoginResponse;
@@ -10,7 +11,10 @@ import com.psychic.octo.spork.restServer.models.Role;
 import com.psychic.octo.spork.restServer.models.User;
 import com.psychic.octo.spork.restServer.repositories.RoleRepository;
 import com.psychic.octo.spork.restServer.repositories.UserRepository;
+import com.psychic.octo.spork.restServer.services.TotpService;
 import com.psychic.octo.spork.restServer.services.UserService;
+import com.psychic.octo.spork.restServer.utils.AuthUtil;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +40,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    @Autowired
+    TotpService totpService;
+
+    @Autowired
+    AuthUtil authUtil;
 
     @Autowired
     UserService userService;
@@ -72,7 +82,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // We need to get the user details from the authentication object
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         // Here, we need to generate the jwtToken with the username from the userDetails
         // We'll send then back to the client
@@ -195,6 +205,74 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new MessageResponse(e.getMessage()));
         }
+    }
 
+    /*
+    *
+    * THESE ARE THE TWO-FACTOR AUTHENTICATION METHODS
+    *
+    */
+
+    @PostMapping("/enable-2fa")
+    public ResponseEntity<String> enable2FA() {
+        Long userId = authUtil.loggedInUserId();
+        GoogleAuthenticatorKey secret = userService.generate2FASecret(userId);
+        String qrCodeUrl = totpService.getQrCodeUrl(secret,
+                userService.getUserById(userId).getUserName());
+
+        return ResponseEntity.ok(qrCodeUrl);
+    }
+
+    @PostMapping("/disable-2fa")
+    public ResponseEntity<String> disable2FA() {
+        Long userId = authUtil.loggedInUserId();
+        userService.disable2FA(userId);
+
+        return ResponseEntity.ok("2FA disabled");
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<String> verify2FA(@RequestParam int code) {
+        Long userId = authUtil.loggedInUserId();
+        boolean isValid = userService.validate2FACode(userId,code);
+
+        if(isValid) {
+            userService.enable2FA(userId);
+            return ResponseEntity.ok("2FA Verified");
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Invalid 2FA Code");
+    }
+
+    @GetMapping("/user/2fa-status")
+    public ResponseEntity<?> get2FAStatus() {
+        User user = authUtil.loggedInUser();
+
+        if ( user != null) {
+            return ResponseEntity.ok()
+                    .body(Map.of("is2faEnabled",user.isTwoFactorEnabled()));
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("User Not Found");
+    }
+
+    @PostMapping("/public/verify-2fa-login")
+    public ResponseEntity<String> verify2FALogin(@RequestParam int code,
+                                                 @RequestParam String jwtToken) {
+        // For this method, the user have not been authenticated yet.
+        // We know the user from the jwt we receive. So, we'll find the user using the jwt info
+        String username = jwtUtils.getUserNameFromJwtToken(jwtToken);
+        User user = userService.findByUsername(username);
+
+        boolean isValid = userService.validate2FACode(user.getUserId(),code);
+
+        if(isValid) {
+            return ResponseEntity.ok("2FA Verified");
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Invalid 2FA Code");
     }
 }

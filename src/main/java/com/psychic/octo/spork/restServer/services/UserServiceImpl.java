@@ -9,6 +9,7 @@ import com.psychic.octo.spork.restServer.repositories.PasswordResetRepository;
 import com.psychic.octo.spork.restServer.repositories.RoleRepository;
 import com.psychic.octo.spork.restServer.repositories.UserRepository;
 import com.psychic.octo.spork.restServer.utils.EmailService;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,9 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
     @Value("${frontend.url}")
     String frontendUrl;
+
+    @Autowired
+    TotpService totpService;
 
     @Autowired
     UserRepository userRepository;
@@ -164,6 +168,45 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         return userRepository.save(user);
+    }
+
+    @Override
+    public GoogleAuthenticatorKey generate2FASecret(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow( () -> new RuntimeException("User not found"));
+
+        GoogleAuthenticatorKey key = totpService.generateSecret();
+        user.setTwoFactorSecret(key.getKey());
+
+        userRepository.save(user);
+
+        return key;
+    }
+
+    @Override
+    public boolean validate2FACode(Long userId, int code) {
+        User user = userRepository.findById(userId)
+                .orElseThrow( () -> new RuntimeException("User not found"));
+
+        return totpService.verifyCode(user.getTwoFactorSecret(), code);
+    }
+
+    @Override
+    public void enable2FA(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow( () -> new RuntimeException("User not found"));
+
+        user.setTwoFactorEnabled(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void disable2FA(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow( () -> new RuntimeException("User not found"));
+
+        user.setTwoFactorEnabled(false);
+        userRepository.save(user);
     }
 
     private UserDTO convertToDto(User user) {
