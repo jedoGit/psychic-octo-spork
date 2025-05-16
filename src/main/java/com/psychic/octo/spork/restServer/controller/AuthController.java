@@ -84,6 +84,29 @@ public class AuthController {
         // We need to get the user details from the authentication object
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
+        // Get the user info from the database
+        User user = userService.findByUsername(userDetails.getUsername().toLowerCase());
+
+//        System.out.println("Signin: " + user.toString());
+
+        // Check if user details are good
+        if( !user.isEnabled() ) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("User Account Is Not Enabled");
+        }
+        if( !user.isAccountNonLocked() ) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("User Account Is Locked");
+        }
+        if( !user.isAccountNonExpired() ) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("User Account Is Expired");
+        }
+        if( !user.isCredentialsNonExpired() ) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("User Credentials Are Expired");
+        }
+
         // Here, we need to generate the jwtToken with the username from the userDetails
         // We'll send then back to the client
         String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
