@@ -70,13 +70,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByUsername(String username) {
-        Optional<User> user = userRepository.findByUserName(username);
+        Optional<User> user = userRepository.findByUserName(username.toLowerCase());
         return user.orElseThrow(() -> new RuntimeException("User not found with username: " + username));
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmail(email.toLowerCase());
     }
 
     @Override
@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void generatePasswordResetToken(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow( () -> new RuntimeException("User not found"));
 
         String token = UUID.randomUUID().toString();

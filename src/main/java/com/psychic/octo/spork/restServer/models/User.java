@@ -68,15 +68,29 @@ public class User{
     @UpdateTimestamp
     private LocalDateTime updatedDate;
 
+
+    /*
+    *
+    *   ALL USERS WILL HAVE THEIR USERNAME AND EMAIL IN LOWERCASE
+    *
+    */
     public User(String userName, String email, String password) {
-        this.userName = userName;
-        this.email = email;
+        this.userName = userName.toLowerCase();
+        this.email = email.toLowerCase();
         this.password = password;
     }
 
     public User(String userName, String email) {
-        this.userName = userName;
-        this.email = email;
+        this.userName = userName.toLowerCase();
+        this.email = email.toLowerCase();
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName.toLowerCase();
+    }
+
+    public void setEmail(String email) {
+        this.email = email.toLowerCase();
     }
 
     @Override

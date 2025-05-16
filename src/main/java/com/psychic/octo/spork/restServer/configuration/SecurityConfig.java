@@ -38,6 +38,24 @@ public class SecurityConfig {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    @Value("${spring.security.admin.name}")
+    private String initialAdminUsername;
+
+    @Value("${spring.security.admin.password}")
+    private String initialAdminPassword;
+
+    @Value("${spring.security.admin.email}")
+    private String initialAdminEmail;
+
+    @Value("${spring.security.user.name}")
+    private String initialUsername;
+
+    @Value("${spring.security.user.password}")
+    private String initialUserPassword;
+
+    @Value("${spring.security.user.email}")
+    private String initialUserEmail;
+
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
@@ -115,30 +133,31 @@ public class SecurityConfig {
     @Bean
     public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
+            // Create Initial Roles Here!
             Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
                     .orElseGet(() -> roleRepository.save(new Role(AppRole.ROLE_USER)));
-
             Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
                     .orElseGet(() -> roleRepository.save(new Role(AppRole.ROLE_ADMIN)));
 
-            if (!userRepository.existsByUserName("user1")) {
-                User user1 = new User("user1", "user1@example.com",
-                        passwordEncoder.encode("password1"));
+            // This initial user account will not be used! It will be set to expired!
+            if (!userRepository.existsByUserName(initialUsername)) {
+                User user1 = new User(initialUsername, initialUserEmail,
+                        passwordEncoder.encode(initialUserPassword));
                 user1.setAccountNonLocked(false);
-                user1.setAccountNonExpired(true);
-                user1.setCredentialsNonExpired(true);
-                user1.setEnabled(true);
-                user1.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
-                user1.setAccountExpiryDate(LocalDate.now().plusYears(1));
+                user1.setAccountNonExpired(false);
+                user1.setCredentialsNonExpired(false);
+                user1.setEnabled(false);
+                user1.setCredentialsExpiryDate(LocalDate.now().minusYears(1));
+                user1.setAccountExpiryDate(LocalDate.now().minusYears(1));
                 user1.setTwoFactorEnabled(false);
-                user1.setSignUpMethod("email");
+                user1.setSignUpMethod("security-config");
                 user1.setRole(userRole);
                 userRepository.save(user1);
             }
 
-            if (!userRepository.existsByUserName("admin")) {
-                User admin = new User("admin", "admin@example.com",
-                        passwordEncoder.encode("adminPass"));
+            if (!userRepository.existsByUserName(initialAdminUsername.toLowerCase())) {
+                User admin = new User(initialAdminUsername, initialAdminEmail,
+                        passwordEncoder.encode(initialAdminPassword));
                 admin.setAccountNonLocked(true);
                 admin.setAccountNonExpired(true);
                 admin.setCredentialsNonExpired(true);
@@ -146,7 +165,7 @@ public class SecurityConfig {
                 admin.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
                 admin.setAccountExpiryDate(LocalDate.now().plusYears(1));
                 admin.setTwoFactorEnabled(false);
-                admin.setSignUpMethod("email");
+                admin.setSignUpMethod("security-config");
                 admin.setRole(adminRole);
                 userRepository.save(admin);
             }

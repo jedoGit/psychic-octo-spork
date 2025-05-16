@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,8 +43,9 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     @Value("${frontend.url}")
     private String frontendUrl;
 
-    String username;
-    String idAttributeKey;
+    private String username;
+    private String email;
+    private String idAttributeKey;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
@@ -62,7 +64,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
             Map<String, Object> attributes = principal.getAttributes();
 
             // We only want to grab the email and name attributes from the authenticated user
-            String email = attributes.getOrDefault("email", "").toString();
+            email = attributes.getOrDefault("email", "").toString();
             String name = attributes.getOrDefault("name", "").toString();
 
             // Each OAuth2 provider will pass data differently, so we'll handle getting the username information based
@@ -78,8 +80,14 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                 idAttributeKey = "id";
             }
 
+            // convert Username to lowercase
+            username = username.toLowerCase();
+            // convert email to lowercase
+            email = email.toLowerCase();
+
             // Let's print out the email, name and username
-            System.out.println("HELLO OAUTH: " + email + " : " + name + " : " + username);
+            System.out.println("HELLO OAUTH: " + oAuth2AuthenticationToken.getAuthorizedClientRegistrationId() + " : " +
+                     email + " : " + name + " : " + username);
 
             // We'll use the email to find if it there is a user with this email that already exists in our users repository
             userService.findByEmail(email)
@@ -113,9 +121,18 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                         }
 
                         // Set the rest of the user attibutes
+                        // Username and email will be saved lowercase in database
                         newUser.setEmail(email);
                         newUser.setUserName(username);
-                        newUser.setSignUpMethod(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
+                        newUser.setSignUpMethod("oauth2-" + oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
+
+                        newUser.setAccountNonLocked(true);
+                        newUser.setAccountNonExpired(true);
+                        newUser.setCredentialsNonExpired(true);
+                        newUser.setEnabled(true);
+                        newUser.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
+                        newUser.setAccountExpiryDate(LocalDate.now().plusYears(1));
+                        newUser.setTwoFactorEnabled(false);
 
                         // Save the new user object to the user repository
                         // This means we're auto provisioning the new Oauth2 user if it's not in our user repository
@@ -127,6 +144,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                                 attributes,
                                 idAttributeKey
                         );
+
                         Authentication securityAuth = new OAuth2AuthenticationToken(
                                 oauthUser,
                                 List.of(new SimpleGrantedAuthority(newUser.getRole().getRoleName().name())),
@@ -144,7 +162,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         Map<String, Object> attributes = oauth2User.getAttributes();
 
         // Extract necessary attributes
-        String email = (String) attributes.get("email");
+//        String email = (String) attributes.get("email");
         System.out.println("OAuth2LoginSuccessHandler: " + username + " : " + email);
 
         // We need to add the user role from our database
@@ -152,7 +170,11 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                 .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
                 .collect(Collectors.toList()));
 
-        User user = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User Not Found"));
+        // email is already converted to lowercase here
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+
+        // Add the user role to authorities
         authorities.add(new SimpleGrantedAuthority(user.getRole().getRoleName().name()));
 
         // Create UserDetailsImpl instance

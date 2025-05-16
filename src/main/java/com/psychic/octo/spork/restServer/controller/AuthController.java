@@ -102,18 +102,21 @@ public class AuthController {
 
     @PostMapping("/public/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+        // All username and email will be saved lowercase
+        String userName = signUpRequest.getUsername().toLowerCase();
+        String email = signUpRequest.getEmail().toLowerCase();
+
         // Check first if the username and email are in our user repo... if so, scream back!
-        if (userRepository.existsByUserName(signUpRequest.getUsername())) {
+        if (userRepository.existsByUserName(userName)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
         }
 
         // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
+        User user = new User(userName, email,
                 encoder.encode(signUpRequest.getPassword()));
 
         Set<String> strRoles = signUpRequest.getRole();
@@ -153,7 +156,7 @@ public class AuthController {
     // It uses the JWT received from the client to get the user authenticated information (by the AuthTokenFilter())
     @GetMapping("/user")
     public ResponseEntity<?> getUserDetails(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = userService.findByUsername(userDetails.getUsername());
+        User user = userService.findByUsername(userDetails.getUsername().toLowerCase());
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
@@ -264,7 +267,7 @@ public class AuthController {
         // For this method, the user have not been authenticated yet.
         // We know the user from the jwt we receive. So, we'll find the user using the jwt info
         String username = jwtUtils.getUserNameFromJwtToken(jwtToken);
-        User user = userService.findByUsername(username);
+        User user = userService.findByUsername(username.toLowerCase());
 
         boolean isValid = userService.validate2FACode(user.getUserId(),code);
 
