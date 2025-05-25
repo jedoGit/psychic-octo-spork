@@ -34,7 +34,7 @@ public interface UserService {
 
     void resetPassword(String token, String newPassword);
 
-    User registerUser(User user);
+    void registerUser(User user);
 
     GoogleAuthenticatorKey generate2FASecret(Long userId);
 
