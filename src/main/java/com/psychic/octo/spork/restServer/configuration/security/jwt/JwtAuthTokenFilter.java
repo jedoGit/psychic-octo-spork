@@ -18,19 +18,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class AuthTokenFilter extends OncePerRequestFilter {
+public class JwtAuthTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthTokenFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        logger.debug("AuthTokenFilter called for URI: {}", request.getRequestURI());
+        logger.debug("JwtAuthTokenFilter called for URI: {}", request.getRequestURI());
         try {
             // Get the jwt from the request
             String jwt = parseJwt(request);
@@ -41,7 +41,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 // Get the user details from the database
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                // Authenticate the user to get the roles (userDetails.getAuthorities())
+                // This method creates the username and password authentication tokens from the user details
+                // this will be our authentication object that will be passed and used in the UsernamePasswordAuthenticationFilter.class
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails,
                                 null,
@@ -49,7 +50,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                 logger.debug("Roles from JWT: {}", userDetails.getAuthorities());
 
-                // At this point, there are no error so we set the user details then set the authentication context
+                // We need to convert the HttpServletRequest (which is a java class) to a WebAuthenticationDetails (which is a spring class)
+                // This is simply a bridge between servlet classes and spring classes
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -63,7 +65,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private String parseJwt(HttpServletRequest request) {
         String jwt = jwtUtils.getJwtFromHeader(request);
-        logger.debug("AuthTokenFilter.java: {}", jwt);
+        logger.debug("JwtAuthTokenFilter.java: {}", jwt);
         return jwt;
     }
 }

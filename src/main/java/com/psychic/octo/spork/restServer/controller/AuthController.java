@@ -176,7 +176,7 @@ public class AuthController {
 
     // Returns the user information of the authenticated user
     // This will be called by a client once the user has successfully logged in the system.
-    // It uses the JWT received from the client to get the user authenticated information (by the AuthTokenFilter())
+    // It uses the JWT received from the client to get the user authenticated information (by the JwtAuthTokenFilter())
     @GetMapping("/user")
     public ResponseEntity<?> getUserDetails(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.findByUsername(userDetails.getUsername().toLowerCase());
@@ -204,7 +204,7 @@ public class AuthController {
 
     // Returns the username of the authenticated user
     // This will be called by a client once the user has successfully logged in the system.
-    // It uses the JWT received from the client to get the user authenticated information (by the AuthTokenFilter())
+    // It uses the JWT received from the client to get the user authenticated information (by the JwtAuthTokenFilter())
     @GetMapping("/username")
     public String currentUserName(@AuthenticationPrincipal UserDetails userDetails) {
         return (userDetails != null) ? userDetails.getUsername() : "";

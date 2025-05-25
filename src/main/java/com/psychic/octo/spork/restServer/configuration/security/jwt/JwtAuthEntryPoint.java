@@ -16,12 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class AuthEntryPointJwt implements AuthenticationEntryPoint {
+public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
 
     // This is for unauthorized users. This class handles sending the unauthorized response immediately after authentication fail
     // This will be called in the security filter chain.
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthEntryPointJwt.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthEntryPoint.class);
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)

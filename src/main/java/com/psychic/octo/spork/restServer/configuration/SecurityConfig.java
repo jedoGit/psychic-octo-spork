@@ -6,8 +6,8 @@ import com.psychic.octo.spork.restServer.models.Role;
 import com.psychic.octo.spork.restServer.models.User;
 import com.psychic.octo.spork.restServer.repositories.RoleRepository;
 import com.psychic.octo.spork.restServer.repositories.UserRepository;
-import com.psychic.octo.spork.restServer.configuration.security.jwt.AuthEntryPointJwt;
-import com.psychic.octo.spork.restServer.configuration.security.jwt.AuthTokenFilter;
+import com.psychic.octo.spork.restServer.configuration.security.jwt.JwtAuthEntryPoint;
+import com.psychic.octo.spork.restServer.configuration.security.jwt.JwtAuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -57,11 +57,11 @@ public class SecurityConfig {
     private String initialUserEmail;
 
     @Autowired
-    private AuthEntryPointJwt unauthorizedHandler;
+    private JwtAuthEntryPoint jwtUnauthorizedHandler;
 
     @Bean
-    public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter();
+    public JwtAuthTokenFilter jwtAuthTokenFilter() {
+        return new JwtAuthTokenFilter();
     }
 
     @Autowired
@@ -92,9 +92,9 @@ public class SecurityConfig {
                             oauth2.successHandler(oAuth2LoginSuccessHandler);
                         })
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(unauthorizedHandler))
-                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)  // Add the JWT Authentication before the UsernamePassword Auth
-                .formLogin(withDefaults())
+                        .authenticationEntryPoint(jwtUnauthorizedHandler))
+                .addFilterBefore(jwtAuthTokenFilter(), UsernamePasswordAuthenticationFilter.class)  // Add the JWT Authentication before the UsernamePassword Auth
+//                .formLogin(withDefaults())
                 .httpBasic(withDefaults());
         return http.build();
     }
