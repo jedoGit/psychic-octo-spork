@@ -12,4 +12,6 @@ public interface NoteService {
     void deleteNoteForUser(Long noteId, String username);
 
     List<Note> getNotesForUser(String username);
+
+    List<Note> getAllNotes();
 }

@@ -45,4 +45,9 @@ public class NoteController {
         String username = userDetails.getUsername();
         noteService.deleteNoteForUser(noteId, username);
     }
+
+    @GetMapping("/public/all-notes")
+    public List<Note> getAllNotes() {
+        return noteService.getAllNotes();
+    }
 }
