@@ -209,6 +209,20 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public void updateCredentials(String currentUserName, String newPassword) {
+        try{
+            User user = userRepository.findByUserName(currentUserName.toLowerCase())
+                    .orElseThrow(() -> new RuntimeException("User not found"));;
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update password");
+        }
+    }
+
     private UserDTO convertToDto(User user) {
         return new UserDTO(
                 user.getUserId(),

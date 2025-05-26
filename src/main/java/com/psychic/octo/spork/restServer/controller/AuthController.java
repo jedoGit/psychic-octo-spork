@@ -301,4 +301,15 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body("Invalid 2FA Code");
     }
+
+
+    @PostMapping("/update-credentials")
+    public ResponseEntity<String> updatePassword(@RequestParam String jwtToken, @RequestParam String newPassword) {
+
+        String currentUserName = jwtUtils.getUserNameFromJwtToken(jwtToken);
+
+        userService.updateCredentials(currentUserName, newPassword);
+
+        return ResponseEntity.ok("Password updated");
+    }
 }
