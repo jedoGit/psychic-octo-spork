@@ -3,11 +3,9 @@ package com.psychic.octo.spork.restServer.dto.request;
 import java.util.Set;
 
 import jakarta.validation.constraints.*;
-import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 
-@Data
+@Getter
 public class SignupRequest {
     @NotBlank
     @Size(min = 3, max = 20)
@@ -18,8 +16,6 @@ public class SignupRequest {
     @Email
     private String email;
 
-    @Setter
-    @Getter
     private Set<String> role;
 
     @NotBlank
