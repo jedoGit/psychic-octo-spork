@@ -4,12 +4,13 @@ package com.psychic.octo.spork.restServer.dto;
 import com.psychic.octo.spork.restServer.models.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class UserDTO {
     private Long userId;
