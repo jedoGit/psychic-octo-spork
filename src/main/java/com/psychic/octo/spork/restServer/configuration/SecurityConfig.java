@@ -142,32 +142,44 @@ public class SecurityConfig {
 
             // This initial user account will not be used! It will be set to expired!
             if (!userRepository.existsByUserName(initialUsername)) {
-                User user1 = new User(initialUsername, initialUserEmail,
-                        passwordEncoder.encode(initialUserPassword));
-                user1.setAccountNonLocked(false);
-                user1.setAccountNonExpired(false);
-                user1.setCredentialsNonExpired(false);
-                user1.setEnabled(false);
-                user1.setCredentialsExpiryDate(LocalDate.now().minusYears(1));
-                user1.setAccountExpiryDate(LocalDate.now().minusYears(1));
-                user1.setTwoFactorEnabled(false);
-                user1.setSignUpMethod("security-config");
-                user1.setRole(userRole);
+
+                // Create new user account
+                User user1 = new User.Builder()
+                        .userName(initialUsername)
+                        .email(initialUserEmail)
+                        .password(passwordEncoder.encode(initialUserPassword))
+                        .role(userRole)
+                        .isAccountNonLocked(false)
+                        .isAccountNonExpired(false)
+                        .isCredentialsNonExpired(false)
+                        .isEnabled(false)
+                        .credentialsExpiryDate(LocalDate.now().minusYears(1))
+                        .accountExpiryDate(LocalDate.now().minusYears(1))
+                        .is2faEnabled(false)
+                        .signUpMethod("security-config")
+                        .build();
+
                 userRepository.save(user1);
             }
 
             if (!userRepository.existsByUserName(initialAdminUsername.toLowerCase())) {
-                User admin = new User(initialAdminUsername, initialAdminEmail,
-                        passwordEncoder.encode(initialAdminPassword));
-                admin.setAccountNonLocked(true);
-                admin.setAccountNonExpired(true);
-                admin.setCredentialsNonExpired(true);
-                admin.setEnabled(true);
-                admin.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
-                admin.setAccountExpiryDate(LocalDate.now().plusYears(1));
-                admin.setTwoFactorEnabled(false);
-                admin.setSignUpMethod("security-config");
-                admin.setRole(adminRole);
+
+                // Create new user account
+                User admin = new User.Builder()
+                        .userName(initialAdminUsername)
+                        .email(initialAdminEmail)
+                        .password(passwordEncoder.encode(initialAdminPassword))
+                        .role(adminRole)
+                        .isAccountNonLocked(true)
+                        .isAccountNonExpired(true)
+                        .isCredentialsNonExpired(true)
+                        .isEnabled(true)
+                        .credentialsExpiryDate(LocalDate.now().plusYears(1))
+                        .accountExpiryDate(LocalDate.now().plusYears(1))
+                        .is2faEnabled(false)
+                        .signUpMethod("security-config")
+                        .build();
+
                 userRepository.save(admin);
             }
         };

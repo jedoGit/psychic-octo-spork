@@ -68,29 +68,111 @@ public class User{
     @UpdateTimestamp
     private LocalDateTime updatedDate;
 
-
     /*
     *
     *   ALL USERS WILL HAVE THEIR USERNAME AND EMAIL IN LOWERCASE
     *
     */
-    public User(String userName, String email, String password) {
-        this.userName = userName.toLowerCase();
-        this.email = email.toLowerCase();
-        this.password = password;
+
+    private User(Builder builder) {
+        this.userName =builder.userName.toLowerCase();
+        this.email = builder.email.toLowerCase();
+        this.password = builder.password;
+        this.accountNonLocked = builder.isAccountNonLocked;
+        this.accountNonExpired = builder.isAccountNonExpired;
+        this.credentialsNonExpired = builder.isCredentialsNonExpired;
+        this.enabled = builder.isEnabled;
+        this.credentialsExpiryDate = builder.credentialsExpiryDate;
+        this.accountExpiryDate = builder.accountExpiryDate;
+        this.isTwoFactorEnabled = builder.is2faEnabled;
+        this.twoFactorSecret = builder.twoFactorSecret;
+        this.signUpMethod = builder.signUpMethod;
+        this.role = builder.role;
     }
 
-    public User(String userName, String email) {
-        this.userName = userName.toLowerCase();
-        this.email = email.toLowerCase();
-    }
+    public static class Builder {
+        private String userName;
+        private String email;
+        private String password;
+        private boolean isAccountNonLocked;
+        private boolean isAccountNonExpired;
+        private boolean isCredentialsNonExpired;
+        private boolean isEnabled;
+        private LocalDate credentialsExpiryDate;
+        private LocalDate accountExpiryDate;
+        private boolean is2faEnabled;
+        private String twoFactorSecret;
+        private String signUpMethod;
+        private Role role;
 
-    public void setUserName(String userName) {
-        this.userName = userName.toLowerCase();
-    }
+        public Builder userName(final String userName){
+            this.userName = userName;
+            return this;
+        }
 
-    public void setEmail(String email) {
-        this.email = email.toLowerCase();
+        public Builder email(final String email){
+            this.email = email;
+            return this;
+        }
+
+        public Builder password(final String password){
+            this.password = password;
+            return this;
+        }
+
+        public Builder is2faEnabled(final boolean is2faEnabled){
+            this.is2faEnabled = is2faEnabled;
+            return this;
+        }
+
+        public Builder role(final Role role ) {
+            this.role = role;
+            return this;
+        }
+
+        public Builder isAccountNonExpired(final boolean isAccountNonExpired){
+            this.isAccountNonExpired = isAccountNonExpired;
+            return this;
+        }
+
+        public Builder isAccountNonLocked(final boolean isAccountNonLocked){
+            this.isAccountNonLocked = isAccountNonLocked;
+            return this;
+        }
+
+        public Builder isCredentialsNonExpired(final boolean isCredentialsNonExpired){
+            this.isCredentialsNonExpired = isCredentialsNonExpired;
+            return this;
+        }
+
+        public Builder isEnabled(final boolean isEnabled){
+            this.isEnabled = isEnabled;
+            return this;
+        }
+
+        public Builder credentialsExpiryDate(final LocalDate credentialsExpiryDate){
+            this.credentialsExpiryDate = credentialsExpiryDate;
+            return this;
+        }
+
+        public Builder accountExpiryDate(final LocalDate accountExpiryDate){
+            this.accountExpiryDate = accountExpiryDate;
+            return this;
+        }
+
+        public Builder twoFactorSecret(final String twoFactorSecret){
+            this.twoFactorSecret = twoFactorSecret;
+            return this;
+        }
+
+        public Builder signUpMethod(final String signUpMethod){
+            this.signUpMethod = signUpMethod;
+            return this;
+        }
+
+        public User build() {
+            return new User(this);
+        }
     }
 
     @Override

@@ -138,10 +138,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        // Create new user's account
-        User user = new User(userName, email,
-                encoder.encode(signUpRequest.getPassword()));
-
+        // Get the role
         Set<String> strRoles = signUpRequest.getRole();
         Role role;
 
@@ -158,17 +155,24 @@ public class AuthController {
                 role = roleRepository.findByRoleName(AppRole.ROLE_USER)
                         .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             }
-
-            user.setAccountNonLocked(true);
-            user.setAccountNonExpired(true);
-            user.setCredentialsNonExpired(true);
-            user.setEnabled(true);
-            user.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
-            user.setAccountExpiryDate(LocalDate.now().plusYears(1));
-            user.setTwoFactorEnabled(false);
-            user.setSignUpMethod("email");
         }
-        user.setRole(role);
+
+        // Create new user account
+        User user = new User.Builder()
+                        .userName(userName)
+                        .email(email)
+                        .password(encoder.encode(signUpRequest.getPassword()))
+                        .role(role)
+                        .isAccountNonLocked(true)
+                        .isAccountNonExpired(true)
+                        .isCredentialsNonExpired(true)
+                        .isEnabled(true)
+                        .credentialsExpiryDate(LocalDate.now().plusYears(1))
+                        .accountExpiryDate(LocalDate.now().plusYears(1))
+                        .is2faEnabled(false)
+                        .signUpMethod("email")
+                        .build();
+
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
