@@ -10,7 +10,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
     private Long userId;
@@ -22,7 +21,6 @@ public class UserDTO {
     private boolean enabled;
     private LocalDate credentialsExpiryDate;
     private LocalDate accountExpiryDate;
-//    private String twoFactorSecret;
     private boolean isTwoFactorEnabled;
     private String signUpMethod;
     private Role role;
