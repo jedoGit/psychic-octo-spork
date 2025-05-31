@@ -166,9 +166,8 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         System.out.println("OAuth2LoginSuccessHandler: " + username + " : " + email);
 
         // We need to add the user role from our database
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>(oauth2User.getAuthorities().stream()
-                .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
-                .collect(Collectors.toList()));
+        Set<SimpleGrantedAuthority> authorities = oauth2User.getAuthorities().stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.getAuthority())).collect(Collectors.toSet());
 
         // email is already converted to lowercase here
         User user = userService.findByEmail(email)
@@ -178,14 +177,18 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         authorities.add(new SimpleGrantedAuthority(user.getRole().getRoleName().name()));
 
         // Create UserDetailsImpl instance
-        UserDetailsImpl userDetails = new UserDetailsImpl(
-                null,
-                username,
-                email,
-                null,
-                false,
-                authorities
-        );
+        UserDetailsImpl userDetails = new UserDetailsImpl.Builder()
+                .id(user.getUserId())
+                .username(user.getUserName())
+                .email(user.getEmail())
+                .password(null) // we don't return the password to the frontend!!!!
+                .is2faEnabled(user.isTwoFactorEnabled())
+                .authorities(authorities)
+                .isAccountNonExpired(user.isAccountNonExpired())
+                .isAccountNonLocked(user.isAccountNonLocked())
+                .isCredentialsNonExpired(user.isCredentialsNonExpired())
+                .isEnabled(user.isEnabled())
+                .build();
 
         // Generate JWT token
         String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
