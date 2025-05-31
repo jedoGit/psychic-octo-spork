@@ -1,40 +1,25 @@
 package com.psychic.octo.spork.restServer.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Setter
 @Getter
+@AllArgsConstructor
 public class UserInfoResponse {
-    private Long id;
-    private String username;
-    private String email;
-    private boolean accountNonLocked;
-    private boolean accountNonExpired;
-    private boolean credentialsNonExpired;
-    private boolean enabled;
-    private LocalDate credentialsExpiryDate;
-    private LocalDate accountExpiryDate;
-    private boolean isTwoFactorEnabled;
-    private List<String> roles;
+    private final Long id;
+    private final String username;
+    private final String email;
+    private final boolean accountNonLocked;
+    private final boolean accountNonExpired;
+    private final boolean credentialsNonExpired;
+    private final boolean enabled;
+    private final LocalDate credentialsExpiryDate;
+    private final LocalDate accountExpiryDate;
+    private final boolean isTwoFactorEnabled;
+    private final List<String> roles;
 
-    public UserInfoResponse(Long id, String username, String email, boolean accountNonLocked, boolean accountNonExpired,
-                            boolean credentialsNonExpired, boolean enabled, LocalDate credentialsExpiryDate,
-                            LocalDate accountExpiryDate, boolean isTwoFactorEnabled, List<String> roles) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.accountNonLocked = accountNonLocked;
-        this.accountNonExpired = accountNonExpired;
-        this.credentialsNonExpired = credentialsNonExpired;
-        this.enabled = enabled;
-        this.credentialsExpiryDate = credentialsExpiryDate;
-        this.accountExpiryDate = accountExpiryDate;
-        this.isTwoFactorEnabled = isTwoFactorEnabled;
-        this.roles = roles;
-    }
 }
 

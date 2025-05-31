@@ -1,16 +1,14 @@
 package com.psychic.octo.spork.restServer.dto.response;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
-@Setter
+
 @Getter
+@AllArgsConstructor
 public class MessageResponse {
-    private String message;
+    private final String message;
 
-    public MessageResponse(String message) {
-        this.message = message;
-    }
 }
 
