@@ -20,6 +20,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -56,8 +57,8 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream().map(this::convertToDto).toList();
     }
 
 
@@ -234,7 +235,6 @@ public class UserServiceImpl implements UserService {
                 user.isEnabled(),
                 user.getCredentialsExpiryDate(),
                 user.getAccountExpiryDate(),
-                user.getTwoFactorSecret(),
                 user.isTwoFactorEnabled(),
                 user.getSignUpMethod(),
                 user.getRole(),
@@ -242,7 +242,4 @@ public class UserServiceImpl implements UserService {
                 user.getUpdatedDate()
         );
     }
-
-
 }
-

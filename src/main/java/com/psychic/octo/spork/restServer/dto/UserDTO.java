@@ -22,7 +22,7 @@ public class UserDTO {
     private boolean enabled;
     private LocalDate credentialsExpiryDate;
     private LocalDate accountExpiryDate;
-    private String twoFactorSecret;
+//    private String twoFactorSecret;
     private boolean isTwoFactorEnabled;
     private String signUpMethod;
     private Role role;

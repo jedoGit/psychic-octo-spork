@@ -10,15 +10,13 @@ import java.util.Optional;
 public interface UserService {
     void updateUserRole(Long userId, String roleName);
 
-    List<User> getAllUsers();
+    List<UserDTO> getAllUsers();
 
     UserDTO getUserById(Long id);
 
     User findByUsername(String username);
 
     Optional<User> findByEmail(String email);
-
-    
 
     void updateAccountLockStatus(Long userId, boolean lock);
 
