@@ -14,8 +14,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
 @NoArgsConstructor
+@Getter
+@Setter
 @Table(name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "username"),
@@ -85,7 +86,6 @@ public class User{
         this.credentialsExpiryDate = builder.credentialsExpiryDate;
         this.accountExpiryDate = builder.accountExpiryDate;
         this.isTwoFactorEnabled = builder.is2faEnabled;
-        this.twoFactorSecret = builder.twoFactorSecret;
         this.signUpMethod = builder.signUpMethod;
         this.role = builder.role;
     }
@@ -101,7 +101,6 @@ public class User{
         private LocalDate credentialsExpiryDate;
         private LocalDate accountExpiryDate;
         private boolean is2faEnabled;
-        private String twoFactorSecret;
         private String signUpMethod;
         private Role role;
 
@@ -157,11 +156,6 @@ public class User{
 
         public Builder accountExpiryDate(final LocalDate accountExpiryDate){
             this.accountExpiryDate = accountExpiryDate;
-            return this;
-        }
-
-        public Builder twoFactorSecret(final String twoFactorSecret){
-            this.twoFactorSecret = twoFactorSecret;
             return this;
         }
 

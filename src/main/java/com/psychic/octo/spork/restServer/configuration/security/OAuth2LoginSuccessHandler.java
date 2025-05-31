@@ -107,32 +107,27 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                         // Don't forget to set the authentication context
                         SecurityContextHolder.getContext().setAuthentication(securityAuth);
                     }, () -> {
-                        // Here' we can't find a user that matches the email, so we'll create one
-                        User newUser = new User();
                         // Create a user role object.. don't assign an admin!
-                        Optional<Role> userRole = roleRepository.findByRoleName(AppRole.ROLE_USER); // Fetch existing role
-
-                        // Set the role to the  user object
-                        if (userRole.isPresent()) {
-                            newUser.setRole(userRole.get()); // Set existing role
-                        } else {
-                            // Handle the case where the role is not found
-                            throw new RuntimeException("Default role not found");
-                        }
+                        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                                .orElseThrow( () -> new RuntimeException("Default role not found")); // Fetch existing role
 
                         // Set the rest of the user attibutes
                         // Username and email will be saved lowercase in database
-                        newUser.setEmail(email);
-                        newUser.setUserName(username);
-                        newUser.setSignUpMethod("oauth2-" + oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
 
-                        newUser.setAccountNonLocked(true);
-                        newUser.setAccountNonExpired(true);
-                        newUser.setCredentialsNonExpired(true);
-                        newUser.setEnabled(true);
-                        newUser.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
-                        newUser.setAccountExpiryDate(LocalDate.now().plusYears(1));
-                        newUser.setTwoFactorEnabled(false);
+                        // Create new user account
+                        User newUser = new User.Builder()
+                                .userName(username)
+                                .email(email)
+                                .role(userRole)
+                                .isAccountNonLocked(true)
+                                .isAccountNonExpired(true)
+                                .isCredentialsNonExpired(true)
+                                .isEnabled(true)
+                                .credentialsExpiryDate(LocalDate.now().plusYears(1))
+                                .accountExpiryDate(LocalDate.now().plusYears(1))
+                                .is2faEnabled(false)
+                                .signUpMethod("oauth2-" + oAuth2AuthenticationToken.getAuthorizedClientRegistrationId())
+                                .build();
 
                         // Save the new user object to the user repository
                         // This means we're auto provisioning the new Oauth2 user if it's not in our user repository
