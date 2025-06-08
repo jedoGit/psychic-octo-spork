@@ -11,6 +11,7 @@ public class Note {
     private Long id;
 
     @Lob
+    @Column(name = "content", columnDefinition = "MEDIUMTEXT")
     private String content;
 
     private String ownerUsername;
